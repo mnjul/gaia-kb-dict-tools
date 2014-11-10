@@ -3,8 +3,8 @@
 /* This script is just Python-to-JavaScript from xml2dict.py. */
 
 var _NodeCounter = 0;
-var _NodeRemoveCounter = 0;
-var _NodeVisitCounter = 0;
+// var _NodeRemoveCounter = 0; // unused variable
+// var _NodeVisitCounter = 0; // unused variable
 var _EmitCounter = 0;
 var _WordCounter = 0;
 
@@ -12,8 +12,7 @@ const _EndOfWord = String.fromCharCode(0);
 
 // How many times do we use each character in this language
 var characterFrequency = {};
-var maxWordLength = 0
-var highestFreq = 0;
+var maxWordLength = 0;
 
 const _DiacriticIndex = {
   'a': 'ÁáĂăǍǎÂâÄäȦȧẠạȀȁÀàẢảȂȃĀāĄąÅåḀḁȺⱥÃãǼǽǢǣÆæ',
@@ -44,7 +43,7 @@ const _DiacriticIndex = {
   'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ'
 };
 
-var _Diacritics = {} // the mapping from accented to non-accented letters
+var _Diacritics = {}; // the mapping from accented to non-accented letters
 
 // Build the _Diacritics mapping
 for (var letter in _DiacriticIndex) {
@@ -86,8 +85,8 @@ TSTTree.prototype.insert = function(node, word, freq) {
   } else if(ch > node.ch) {
     node.right = this.insert(node.right, word, freq);
   } else {
-    node.frequency = Math.max(node.frequency, freq)
-    if (word.length > 1) }{
+    node.frequency = Math.max(node.frequency, freq);
+    if (word.length > 1) {
       node.center = this.insert(node.center, word.substring(1), freq);
     }
   }
@@ -119,7 +118,8 @@ TSTTree.prototype.rotateRight = function(node) {
   tmp.right = node;
 
   // restore count field
-  node.count = (node.left ? node.left.count : 0) + (node.right ? node.right.count : 0) + 1;
+  node.count = (node.left ? node.left.count : 0) +
+                 (node.right ? node.right.count : 0) + 1;
   tmp.count = (tmp.left ? tmp.left.count : 0) + tmp.right.count + 1;
 
   return tmp;
@@ -135,7 +135,8 @@ TSTTree.prototype.rotateLeft = function(node) {
   tmp.left = node;
 
   // restore count field
-  node.count = (node.left ? node.left.count : 0) + (node.right ? node.right.count : 0) + 1;
+  node.count = (node.left ? node.left.count : 0) +
+                 (node.right ? node.right.count : 0) + 1;
   tmp.count = tmp.left.count + (tmp.right ? tmp.right.count : 0) + 1;
 
   return tmp;
@@ -200,7 +201,8 @@ TSTTree.prototype.sortLevelByFreq = function(node) {
   var nodes = [];
   this.collectLevel(nodes, node);
 
-  // Sort by frequency joining nodes with lowercase/uppercase/accented versions of the same character
+  // Sort by frequency joining nodes with lowercase/uppercase/accented
+  // versions of the same character
 
   nodes.sort((node1, node2) => node1.ch - node2.ch);
   nodes.sort((node1, node2) => node2.frequency - node1.frequency);
@@ -210,7 +212,7 @@ TSTTree.prototype.sortLevelByFreq = function(node) {
   for (var i = 0; i < nodes.length; i++) {
     nodes[i].next = (i < nodes.length - 1) ? nodes[i + 1] : null;
     nodes[i].prev = prev;
-    prev = nodes[i]
+    prev = nodes[i];
   }
 
   return nodes[0];
@@ -231,7 +233,7 @@ TSTTree.prototype.promoteNodeToRoot = function(root, node) {
 
 
 // balance the whole TST
-TSTTree.prototype.balanceTree = function(this, node) {
+TSTTree.prototype.balanceTree = function(node) {
   if (!node) {
     return;
   }
@@ -249,7 +251,7 @@ TSTTree.prototype.balanceTree = function(this, node) {
 };
 
 // balance the whole TST
-TSTTree.prototype.balance = function(this, root) {
+TSTTree.prototype.balance = function(root) {
   this.setCount(root);
 
   root = this.balanceTree(root);
@@ -265,15 +267,15 @@ function serializeNode(node, output){
 
   _EmitCounter += 1;
   if (_EmitCounter % 100000 === 0) {
-    console.log(" >>> (serializing " + _EmitCounter + "/" +
-          _NodeCounter + ")");
+    console.log(' >>> (serializing ' + _EmitCounter + '/' +
+          _NodeCounter + ')');
   }
 
-  if (node.ch == _EndOfWord and node.center) {
-    console.log("nul node with a center!");
+  if (node.ch == _EndOfWord && node.center) {
+    console.log('nul node with a center!');
   }
-  if (node.ch != _EndOfWord and not node.center) {
-    console.log("char node with no center!");
+  if (node.ch != _EndOfWord && !node.center) {
+    console.log('char node with no center!');
   }
 
   // do the center node first so words are close together
@@ -296,12 +298,13 @@ function serializeTree(root) {
   return output;
 }
 
+// unused function
 // Make a pass through the array of nodes and figure out the size and offset
 // of each one.
-function computeOffsets(nodes) {
+/*function computeOffsets(nodes) {
   var offset = 0;
 
-  for (var i = 0; i < nodex.length; i++) {
+  for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
 
     node.offset = offset;
@@ -321,11 +324,11 @@ function computeOffsets(nodes) {
   }
 
   return offset;
-}
+}*/
 
 // In the JS version, since we're not directly writing to a file,
-// "output" is a JS array. We convert to UInt8Array when we
-// finishes pushing to "output". This is because UInt8Array's length
+// 'output' is a JS array. We convert to UInt8Array when we
+// finishes pushing to 'output'. This is because UInt8Array's length
 // has to be decided at instantiation.
 
 function writeUint24(output, x) {
@@ -341,10 +344,13 @@ function emitNode(output, node) {
   var sbit = (charcode > 255) ? 0x40 : 0;
   var nbit = node.next ? 0x20 : 0;
 
+  var freq;
   if (0 === node.frequency) {
-    freq = 0; // zero means profanity
+    // zero means profanity
+    freq = 0;
   } else {
-    freq = 1 + Math.floor(node.frequency * 31); // values > 0 map the range 1 to 31
+    // values > 0 map the range 1 to 31
+    freq = 1 + Math.floor(node.frequency * 31);
   }
 
   var firstbyte = cbit | sbit | nbit | (freq & 0x1F);
@@ -364,17 +370,17 @@ function emitNode(output, node) {
 }
 
 function emit(output, nodes) {
-  var nodeslen = computeOffsets(nodes);
+  // var nodeslen = computeOffsets(nodes); // unused variable?
 
   // 12-byte header with version number
-  output.push("F".toCharCode());
-  output.push("x".toCharCode());
-  output.push("O".toCharCode());
-  output.push("S".toCharCode());
-  output.push("D".toCharCode());
-  output.push("I".toCharCode());
-  output.push("C".toCharCode());
-  output.push("T".toCharCode());
+  output.push('F'.toCharCode());
+  output.push('x'.toCharCode());
+  output.push('O'.toCharCode());
+  output.push('S'.toCharCode());
+  output.push('D'.toCharCode());
+  output.push('I'.toCharCode());
+  output.push('C'.toCharCode());
+  output.push('T'.toCharCode());
   output.push(0);
   output.push(0);
   output.push(0);
@@ -386,7 +392,9 @@ function emit(output, nodes) {
 
   // Output a table of letter frequencies. The search algorithm may
   // want to use this to decide which diacritics to try, for example.
-  var characters = [for (ch of characterFrequency) {ch: ch, freq: characterFrequency[ch]}];
+  var ch;
+  var characters =
+    [for (ch of characterFrequency) {ch: ch, freq: characterFrequency[ch]}];
   characters.sort((chFreq1, chFreq2) => chFreq2.freq - chFreq1.freq);
 
   // JS conversion note on 16-bit and 32-bit writing:
@@ -436,7 +444,7 @@ const WORD_LIST = [
   }
 ];
 
-console.log("[1/4] Reading list and creating TST ...");
+console.log('[1/4] Reading list and creating TST ...');
 
 var tstRoot = null;
 var tree = new TSTTree();
@@ -460,21 +468,21 @@ WORD_LIST.forEach(wordFreq => {
 
   _WordCounter++;
   if (0 === _WordCounter % 10000){
-    console.log("          >>> (" + _WordCounter + " words read)");
+    console.log('          >>> (' + _WordCounter + ' words read)');
   }
 });
 
-console.log("[2/4] Balancing Ternary Search Tree ...");
+console.log('[2/4] Balancing Ternary Search Tree ...');
 tstRoot = tree.balance(tstRoot);
 
-console.log("[3/4] Serializing TST ...");
+console.log('[3/4] Serializing TST ...');
 var nodes = serializeTree(tstRoot);
 
-console.log("[4/4] Emitting TST ...");
+console.log('[4/4] Emitting TST ...');
 var outputArray = [];
 emit(outputArray, nodes);
 
-outputUint8Array = new UInt8Array(outputArray);
+var outputUint8Array = new Uint8Array(outputArray);
 
 // remember to keep outputUint8Array for future usage :)
 
