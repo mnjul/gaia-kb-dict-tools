@@ -46,13 +46,11 @@ const _DiacriticIndex = {
 var _Diacritics = {}; // the mapping from accented to non-accented letters
 
 // Build the _Diacritics mapping
-for (var letter in _DiacriticIndex) {
-  for (var i = 0; i < _DiacriticIndex[letter].length; i++ )
-  {
-    var diacritic = _DiacriticIndex[letter][i];
+Object.keys(_DiacriticIndex).forEach(letter => {
+  for (var diacritic of _DiacriticIndex[letter]) {
     _Diacritics[diacritic] = letter;
   }
-}
+});
 
 // Data Structure for TST Tree
 
@@ -209,11 +207,11 @@ TSTTree.prototype.sortLevelByFreq = function(node) {
 
   // Add next/prev pointers to each node
   var prev = null;
-  for (var i = 0; i < nodes.length; i++) {
-    nodes[i].next = (i < nodes.length - 1) ? nodes[i + 1] : null;
-    nodes[i].prev = prev;
-    prev = nodes[i];
-  }
+  nodes.forEach((node, index) => {
+    node.next = (index < nodes.length - 1) ? nodes[index + 1] : null;
+    node.prev = prev;
+    prev = node;
+  });
 
   return nodes[0];
 };
@@ -418,10 +416,7 @@ function emit(output, nodes) {
   });
 
   // Write the nodes of the tree to the array.
-  for (var i = 0; i < nodes.length; i++){
-    var node = nodes[i];
-    emitNode(output, node);
-  }
+  nodes.forEach(node => emitNode(output, node));
 }
 
 // We'll eventually remove freq?
@@ -450,15 +445,15 @@ var tstRoot = null;
 var tree = new TSTTree();
 
 WORD_LIST.forEach(wordFreq => {
-  var word = wordFreq.w;
-  var freq = wordFreq.f;
+  var {w: word, f: freq} = wordFreq;
 
+  // Find the longest word in the dictionary
   maxWordLength = Math.max(maxWordLength, word.length);
 
   tree.insert(tstRoot, word + _EndOfWord, freq);
 
-  for (var i = 0; i < word.length; i++) {
-    var ch = word[i];
+  // keep track of the letter frequencies
+  for (var ch of word) {
     if (ch in characterFrequency) {
       characterFrequency[ch]++;
     } else {
