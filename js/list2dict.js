@@ -323,7 +323,98 @@ function computeOffsets(nodes) {
   return offset;
 }
 
+// In the JS version, since we're not directly writing to a file,
+// "output" is a JS array. We convert to UInt8Array when we
+// finishes pushing to "output". This is because UInt8Array's length
+// has to be decided at instantiation.
 
+function writeUint24(output, x) {
+  output.push((x >> 16) & 0xFF);
+  output.push((x >> 8) & 0xFF);
+  output.push(x & 0xFF);
+}
+
+function emitNode(output, node) {
+  var charcode = (node.ch == _EndOfWord) ? 0 : String.toCharCode(node.ch);
+
+  var cbit = (0 !== charcode) ? 0x80 : 0;
+  var sbit = (charcode > 255) ? 0x40 : 0;
+  var nbit = node.next ? 0x20 : 0;
+
+  if (0 === node.frequency) {
+    freq = 0; // zero means profanity
+  } else {
+    freq = 1 + Math.floor(node.frequency * 31); // values > 0 map the range 1 to 31
+  }
+
+  var firstbyte = cbit | sbit | nbit | (freq & 0x1F);
+  output.push(firstbyte);
+
+  if (cbit) { // If there is a character for this node
+    if (sbit) { // if it is two bytes long
+      output.push(charcode >> 8);
+    }
+    output.push(charcode & 0xFF);
+  }
+
+  // Write the next node if we have one
+  if (nbit) {
+    writeUint24(output, node.next.offset);
+  }
+}
+
+function emit(output, nodes) {
+  var nodeslen = computeOffsets(nodes);
+
+  // 12-byte header with version number
+  output.push("F".toCharCode());
+  output.push("x".toCharCode());
+  output.push("O".toCharCode());
+  output.push("S".toCharCode());
+  output.push("D".toCharCode());
+  output.push("I".toCharCode());
+  output.push("C".toCharCode());
+  output.push("T".toCharCode());
+  output.push(0);
+  output.push(0);
+  output.push(0);
+  output.push(1);
+
+  // Output the length of the longest word in the dictionary.
+  // This allows to easily reject input that is longer
+  output.push(Math.min(maxWordLength, 255));
+
+  // Output a table of letter frequencies. The search algorithm may
+  // want to use this to decide which diacritics to try, for example.
+  var characters = [for (ch of characterFrequency) {ch: ch, freq: characterFrequency[ch]}];
+  characters.sort((chFreq1, chFreq2) => chFreq2.freq - chFreq1.freq);
+
+  // JS conversion note on 16-bit and 32-bit writing:
+  // The original Python code used big-endian conversion, so we
+  // push MSB first down to LSB.
+
+  output.push((characters.length >> 8) & 0xFF);
+  output.push(characters.length & 0xFF);
+
+  characters.forEach(chFreq => {
+    var charCode = String.toCharCode(chFreq.ch);
+
+    output.push((charCode >> 8) & 0xFF);
+    output.push(charCode & 0xFF);
+
+    var freq = chFreq.freq;
+    output.push((freq >> 24) & 0xFF);
+    output.push((freq >> 16) & 0xFF);
+    output.push((freq >> 8) & 0xFF);
+    output.push(freq & 0xFF);
+  });
+
+  // Write the nodes of the tree to the array.
+  for (var i = 0; i < nodes.length; i++){
+    var node = nodes[i];
+    emitNode(output, node);
+  }
+}
 
 
 
