@@ -416,8 +416,68 @@ function emit(output, nodes) {
   }
 }
 
+// We'll eventually remove freq?
+const WORD_LIST = [
+  {
+    w: 'hello',
+    f: 0.3
+  },
+  {
+    w: 'world',
+    f: 0.3
+  },
+  {
+    w: 'from',
+    f: 0.3
+  },
+  {
+    w: 'godzilla',
+    f: 0.3
+  }
+];
 
+console.log("[1/4] Reading list and creating TST ...");
 
+var tstRoot = null;
+var tree = new TSTTree();
 
+WORD_LIST.forEach(wordFreq => {
+  var word = wordFreq.w;
+  var freq = wordFreq.f;
 
+  maxWordLength = Math.max(maxWordLength, word.length);
 
+  tree.insert(tstRoot, word + _EndOfWord, freq);
+
+  for (var i = 0; i < word.length; i++) {
+    var ch = word[i];
+    if (ch in characterFrequency) {
+      characterFrequency[ch]++;
+    } else {
+      characterFrequency[ch] = 1;
+    }
+  }
+
+  _WordCounter++;
+  if (0 === _WordCounter % 10000){
+    console.log("          >>> (" + _WordCounter + " words read)");
+  }
+});
+
+console.log("[2/4] Balancing Ternary Search Tree ...");
+tstRoot = tree.balance(tstRoot);
+
+console.log("[3/4] Serializing TST ...");
+var nodes = serializeTree(tstRoot);
+
+console.log("[4/4] Emitting TST ...");
+var outputArray = [];
+emit(outputArray, nodes);
+
+outputUint8Array = new UInt8Array(outputArray);
+
+// remember to keep outputUint8Array for future usage :)
+
+for (var i = 0; i < outputUint8Array.length; i++) {
+  console.log(outputUint8Array[i]);
+}
