@@ -256,3 +256,77 @@ TSTTree.prototype.balance = function(this, root) {
 
   return root;
 };
+
+// Serialize the tree to an array. Do it depth first, folling the
+// center pointer first because that might give us better locality
+function serializeNode(node, output){
+  output.push(node);
+  node.offset = output.length;
+
+  _EmitCounter += 1;
+  if (_EmitCounter % 100000 === 0) {
+    console.log(" >>> (serializing " + _EmitCounter + "/" +
+          _NodeCounter + ")");
+  }
+
+  if (node.ch == _EndOfWord and node.center) {
+    console.log("nul node with a center!");
+  }
+  if (node.ch != _EndOfWord and not node.center) {
+    console.log("char node with no center!");
+  }
+
+  // do the center node first so words are close together
+  if (node.center) {
+    serializeNode(node.center, output);
+  }
+
+  if (node.left) {
+    serializeNode(node.left, output);
+  }
+
+  if (node.right) {
+    serializeNode(node.right, output);
+  }
+}
+
+function serializeTree(root) {
+  var output = [];
+  serializeNode(root, output);
+  return output;
+}
+
+// Make a pass through the array of nodes and figure out the size and offset
+// of each one.
+function computeOffsets(nodes) {
+  var offset = 0;
+
+  for (var i = 0; i < nodex.length; i++) {
+    var node = nodes[i];
+
+    node.offset = offset;
+
+    var charlen;
+    if (node.ch == _EndOfWord) {
+      charlen = 0;
+    } else if (String.toCharCode(node.ch) <= 255) {
+      charlen = 1;
+    } else {
+      charlen = 2;
+    }
+
+    var nextlen = node.next ? 3 : 0;
+
+    offset = offset + 1 + charlen + nextlen;
+  }
+
+  return offset;
+}
+
+
+
+
+
+
+
+
