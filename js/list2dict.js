@@ -209,6 +209,8 @@ TSTTree.prototype.sortLevelByFreq = function(node) {
   // Sort by frequency joining nodes with lowercase/uppercase/accented
   // versions of the same character
 
+  // JS converstion note: Make total ordering to ease consistency check
+  // with original Python script
   nodes.sort(function(node1, node2){
     if (node1.ch != node2.ch){
       return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
@@ -320,9 +322,7 @@ var serializeTree = function (root) {
 function computeOffsets(nodes) {
   var offset = 0;
 
-  for (var i = 0; i < nodes.length; i++) {
-    var node = nodes[i];
-
+  nodes.forEach(function(node) {
     node.offset = offset;
 
     var charlen;
@@ -337,7 +337,7 @@ function computeOffsets(nodes) {
     var nextlen = node.next ? 3 : 0;
 
     offset = offset + 1 + charlen + nextlen;
-  }
+  });
 
   return offset;
 }
@@ -411,12 +411,12 @@ var emit = function (output, nodes) {
 
   // Output a table of letter frequencies. The search algorithm may
   // want to use this to decide which diacritics to try, for example.
-  var ch;
   var characters = Object.keys(characterFrequency).map(function(ch) {
     return {ch: ch, freq: characterFrequency[ch]};
   });
 
-  // JS converstion note: Python seems retain alphabetical other of "ch" when freq is the same.
+  // JS converstion note: Python seems retain alphabetical other of "ch"
+  // when freq is the same.
   characters.sort(function (chFreq1, chFreq2){
     if (chFreq2.freq == chFreq1.freq) {
       return chFreq1.ch.charCodeAt(0) - chFreq2.ch.charCodeAt(0);
@@ -447,7 +447,7 @@ var emit = function (output, nodes) {
   });
 
   // Write the nodes of the tree to the array.
-  nodes.forEach(function(node) {emitNode(output, node)});
+  nodes.forEach(function(node) {emitNode(output, node);});
 };
 
 words = words.map(function(word) {
