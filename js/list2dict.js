@@ -1,6 +1,12 @@
 'use strict';
 
-/* This script is just Python-to-JavaScript from xml2dict.py. */
+/* global exports */
+
+/* This script is largely Python-to-JavaScript from xml2dict.py, especially
+   for tree construction algorithms. */
+
+function wordsToUint8ArrayBlob(words) {
+
 
 var _NodeCounter = 0;
 // var _NodeRemoveCounter = 0; // unused variable
@@ -259,7 +265,7 @@ TSTTree.prototype.balance = function(root) {
 
 // Serialize the tree to an array. Do it depth first, folling the
 // center pointer first because that might give us better locality
-function serializeNode(node, output){
+var serializeNode = function (node, output) {
   output.push(node);
   node.offset = output.length;
 
@@ -288,13 +294,13 @@ function serializeNode(node, output){
   if (node.right) {
     serializeNode(node.right, output);
   }
-}
+};
 
-function serializeTree(root) {
+var serializeTree = function (root) {
   var output = [];
   serializeNode(root, output);
   return output;
-}
+};
 
 // unused function
 // Make a pass through the array of nodes and figure out the size and offset
@@ -329,13 +335,13 @@ function serializeTree(root) {
 // finishes pushing to 'output'. This is because UInt8Array's length
 // has to be decided at instantiation.
 
-function writeUint24(output, x) {
+var writeUint24 = function (output, x) {
   output.push((x >> 16) & 0xFF);
   output.push((x >> 8) & 0xFF);
   output.push(x & 0xFF);
-}
+};
 
-function emitNode(output, node) {
+var emitNode = function (output, node) {
   var charcode = (node.ch == _EndOfWord) ? 0 : String.toCharCode(node.ch);
 
   var cbit = (0 !== charcode) ? 0x80 : 0;
@@ -365,9 +371,9 @@ function emitNode(output, node) {
   if (nbit) {
     writeUint24(output, node.next.offset);
   }
-}
+};
 
-function emit(output, nodes) {
+var emit = function (output, nodes) {
   // var nodeslen = computeOffsets(nodes); // unused variable?
 
   // 12-byte header with version number
@@ -417,34 +423,17 @@ function emit(output, nodes) {
 
   // Write the nodes of the tree to the array.
   nodes.forEach(node => emitNode(output, node));
-}
+};
 
-// We'll eventually remove freq?
-const WORD_LIST = [
-  {
-    w: 'hello',
-    f: 0.3
-  },
-  {
-    w: 'world',
-    f: 0.3
-  },
-  {
-    w: 'from',
-    f: 0.3
-  },
-  {
-    w: 'godzilla',
-    f: 0.3
-  }
-];
+var word;
+words = [for (word of words) {w: word, f: 0.3}];
 
 console.log('[1/4] Reading list and creating TST ...');
 
 var tstRoot = null;
 var tree = new TSTTree();
 
-WORD_LIST.forEach(wordFreq => {
+words.forEach(wordFreq => {
   var {w: word, f: freq} = wordFreq;
 
   // Find the longest word in the dictionary
@@ -481,6 +470,11 @@ var outputUint8Array = new Uint8Array(outputArray);
 
 // remember to keep outputUint8Array for future usage :)
 
-for (var i = 0; i < outputUint8Array.length; i++) {
-  console.log(outputUint8Array[i]);
+return outputUint8Array;
+
+
+}
+
+if (exports) {
+  exports.wordsToUint8ArrayBlob = wordsToUint8ArrayBlob;
 }
