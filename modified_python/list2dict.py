@@ -293,8 +293,8 @@ class TSTTree:
         #         items.sort(key = lambda node: node.frequency, reverse = True)
 
         # Sort by frequency joining nodes with lowercase/uppercase/accented versions of the same character
-        nodes.sort(key = lambda node: node.ch)
-        nodes.sort(key = lambda node: node.frequency, reverse = True)
+        nodes.sort(cmp = lambda node1, node2: ord(node1.ch) - ord(node2.ch) if node1.ch != node2.ch else node2.frequency - node1.frequency)
+        nodes.sort(cmp = lambda node1, node2: node1.frequency - node2.frequency if node1.frequency != node2.frequency else ord(node2.ch) - ord(node1.ch), reverse = True)
         # nodes = []
         # for items in level:
         #     nodes += items
@@ -431,7 +431,7 @@ def emit(output, nodes):
     # Output a table of letter frequencies. The search algorithm may
     # want to use this to decide which diacritics to try, for example.
     characters = sorted(list(characterFrequency.items()),
-                        key = lambda item: item[1],
+                        cmp = lambda item1, item2: item1[1] - item2[1] if item1[1] != item2[1] else ord(item2[0]) - ord(item1[0]),
                         reverse = True)
     output.write(struct.pack(">H", len(characters)))   # Num items that follow
     for item in characters:

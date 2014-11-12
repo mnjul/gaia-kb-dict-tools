@@ -209,8 +209,20 @@ TSTTree.prototype.sortLevelByFreq = function(node) {
   // Sort by frequency joining nodes with lowercase/uppercase/accented
   // versions of the same character
 
-  nodes.sort(function(node1, node2){ return node1.ch - node2.ch; });
-  nodes.sort(function(node1, node2){ return node2.frequency - node1.frequency; });
+  nodes.sort(function(node1, node2){
+    if (node1.ch != node2.ch){
+      return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
+    }else{
+      return node2.frequency - node1.frequency;
+    }
+  });
+  nodes.sort(function(node1, node2){
+    if (node1.frequency != node2.frequency){
+      return node2.frequency - node1.frequency;
+    }else{
+      return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
+    }
+  });
 
   // Add next/prev pointers to each node
   var prev = null;
@@ -303,10 +315,9 @@ var serializeTree = function (root) {
   return output;
 };
 
-// unused function
 // Make a pass through the array of nodes and figure out the size and offset
 // of each one.
-/*function computeOffsets(nodes) {
+function computeOffsets(nodes) {
   var offset = 0;
 
   for (var i = 0; i < nodes.length; i++) {
@@ -317,7 +328,7 @@ var serializeTree = function (root) {
     var charlen;
     if (node.ch == _EndOfWord) {
       charlen = 0;
-    } else if (String.toCharCode(node.ch) <= 255) {
+    } else if (node.ch.charCodeAt(0) <= 255) {
       charlen = 1;
     } else {
       charlen = 2;
@@ -329,7 +340,7 @@ var serializeTree = function (root) {
   }
 
   return offset;
-}*/
+}
 
 // In the JS version, since we're not directly writing to a file,
 // 'output' is a JS array. We convert to UInt8Array when we
@@ -375,7 +386,10 @@ var emitNode = function (output, node) {
 };
 
 var emit = function (output, nodes) {
-  // var nodeslen = computeOffsets(nodes); // unused variable?
+  // nodeslen isn't used, but computeOffsets would mutate nodes,
+  // so we need to call it
+  var nodeslen = computeOffsets(nodes);
+  nodeslen;
 
   // 12-byte header with version number
   output.push('F'.charCodeAt(0));
@@ -401,13 +415,22 @@ var emit = function (output, nodes) {
   var characters = Object.keys(characterFrequency).map(function(ch) {
     return {ch: ch, freq: characterFrequency[ch]};
   });
-  characters.sort(function (chFreq1, chFreq2){ return chFreq2.freq - chFreq1.freq; });
+
+  // JS converstion note: Python seems retain alphabetical other of "ch" when freq is the same.
+  characters.sort(function (chFreq1, chFreq2){
+    if (chFreq2.freq == chFreq1.freq) {
+      return chFreq1.ch.charCodeAt(0) - chFreq2.ch.charCodeAt(0);
+    }else{
+      return chFreq2.freq - chFreq1.freq;
+    }
+  });
 
   // JS conversion note on 16-bit and 32-bit writing:
   // The original Python code used big-endian conversion, so we
   // push MSB first down to LSB.
 
   output.push((characters.length >> 8) & 0xFF);
+
   output.push(characters.length & 0xFF);
 
   characters.forEach(function (chFreq) {
@@ -427,7 +450,6 @@ var emit = function (output, nodes) {
   nodes.forEach(function(node) {emitNode(output, node)});
 };
 
-var word;
 words = words.map(function(word) {
   return {w: word, f: 0.3};
 });
