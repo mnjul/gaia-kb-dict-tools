@@ -1,6 +1,6 @@
 'use strict';
 
-/* global exports */
+/* global module */
 
 /* This script is largely Python-to-JavaScript from xml2dict.py, especially
    for tree construction algorithms. */
@@ -52,7 +52,7 @@ const _DiacriticIndex = {
 var _Diacritics = {}; // the mapping from accented to non-accented letters
 
 // Build the _Diacritics mapping
-Object.keys(_DiacriticIndex).forEach(letter => {
+Object.keys(_DiacriticIndex).forEach(function(letter) {
   for (var diacritic of _DiacriticIndex[letter]) {
     _Diacritics[diacritic] = letter;
   }
@@ -208,12 +208,12 @@ TSTTree.prototype.sortLevelByFreq = function(node) {
   // Sort by frequency joining nodes with lowercase/uppercase/accented
   // versions of the same character
 
-  nodes.sort((node1, node2) => node1.ch - node2.ch);
-  nodes.sort((node1, node2) => node2.frequency - node1.frequency);
+  nodes.sort(function(node1, node2){ return node1.ch - node2.ch; });
+  nodes.sort(function(node1, node2){ return node2.frequency - node1.frequency; });
 
   // Add next/prev pointers to each node
   var prev = null;
-  nodes.forEach((node, index) => {
+  nodes.forEach(function (node, index) {
     node.next = (index < nodes.length - 1) ? nodes[index + 1] : null;
     node.prev = prev;
     prev = node;
@@ -399,7 +399,7 @@ var emit = function (output, nodes) {
   var ch;
   var characters =
     [for (ch of characterFrequency) {ch: ch, freq: characterFrequency[ch]}];
-  characters.sort((chFreq1, chFreq2) => chFreq2.freq - chFreq1.freq);
+  characters.sort(function (chFreq1, chFreq2){ return chFreq2.freq - chFreq1.freq; });
 
   // JS conversion note on 16-bit and 32-bit writing:
   // The original Python code used big-endian conversion, so we
@@ -408,7 +408,7 @@ var emit = function (output, nodes) {
   output.push((characters.length >> 8) & 0xFF);
   output.push(characters.length & 0xFF);
 
-  characters.forEach(chFreq => {
+  characters.forEach(function (chFreq) {
     var charCode = String.toCharCode(chFreq.ch);
 
     output.push((charCode >> 8) & 0xFF);
@@ -422,7 +422,7 @@ var emit = function (output, nodes) {
   });
 
   // Write the nodes of the tree to the array.
-  nodes.forEach(node => emitNode(output, node));
+  nodes.forEach(function(node) {emitNode(output, node));
 };
 
 var word;
@@ -433,7 +433,7 @@ console.log('[1/4] Reading list and creating TST ...');
 var tstRoot = null;
 var tree = new TSTTree();
 
-words.forEach(wordFreq => {
+words.forEach(function(wordFreq) {
   var {w: word, f: freq} = wordFreq;
 
   // Find the longest word in the dictionary
@@ -475,6 +475,6 @@ return outputUint8Array;
 
 }
 
-if (exports) {
-  exports.wordsToUint8ArrayBlob = wordsToUint8ArrayBlob;
+if (module) {
+  module.exports.wordsToUint8ArrayBlob = wordsToUint8ArrayBlob;
 }
