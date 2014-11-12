@@ -448,8 +448,9 @@ if __name__ == "__main__":
     # read input file
     import sys
     import os
+    import codecs
 
-    input_file = open("cases/" + sys.argv[1], "r")
+    input_file = codecs.open("cases/" + sys.argv[1], "r", "utf8")
 
     words = [line.strip() for line in input_file.readlines()]
     words = [word for word in words if len(word) > 0]
