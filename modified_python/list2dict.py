@@ -452,6 +452,7 @@ if __name__ == "__main__":
     input_file = open("cases/" + sys.argv[1], "r")
 
     words = [line.strip() for line in input_file.readlines()]
+    words = [word for word in words if len(word) > 0]
 
     input_file.close()
 

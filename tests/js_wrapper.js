@@ -7,6 +7,7 @@ fs.readFile('cases/' + caseName, 'utf8', function(err, data){
 	if (err) throw err;
 
 	var words = data.split('\n');
+	words = words.filter(function(word){ return word.length > 0;});
 
 	var uint8ArrayBlob = List2Dict.wordsToUint8ArrayBlob(words);
 
