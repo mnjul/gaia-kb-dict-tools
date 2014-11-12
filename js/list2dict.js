@@ -451,7 +451,7 @@ var emit = function (output, nodes) {
 };
 
 words = words.map(function(word) {
-  return {w: word, f: 0.3};
+  return {w: word, f: 0};
 });
 
 console.log('[1/4] Reading list and creating TST ...');
