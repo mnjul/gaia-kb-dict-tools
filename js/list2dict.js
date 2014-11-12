@@ -5,8 +5,9 @@
 /* This script is largely Python-to-JavaScript from xml2dict.py, especially
    for tree construction algorithms. */
 
-function wordsToUint8ArrayBlob(words) {
+/* The script has to be tested with Node so not all ES6 features are used. */
 
+function wordsToUint8ArrayBlob(words) {
 
 var _NodeCounter = 0;
 // var _NodeRemoveCounter = 0; // unused variable
@@ -53,9 +54,9 @@ var _Diacritics = {}; // the mapping from accented to non-accented letters
 
 // Build the _Diacritics mapping
 Object.keys(_DiacriticIndex).forEach(function(letter) {
-  for (var diacritic of _DiacriticIndex[letter]) {
+  _DiacriticIndex[letter].split('').forEach(function(diacritic){
     _Diacritics[diacritic] = letter;
-  }
+  });
 });
 
 // Data Structure for TST Tree
@@ -342,7 +343,7 @@ var writeUint24 = function (output, x) {
 };
 
 var emitNode = function (output, node) {
-  var charcode = (node.ch == _EndOfWord) ? 0 : String.toCharCode(node.ch);
+  var charcode = (node.ch == _EndOfWord) ? 0 : node.ch.charCodeAt(0);
 
   var cbit = (0 !== charcode) ? 0x80 : 0;
   var sbit = (charcode > 255) ? 0x40 : 0;
@@ -377,14 +378,14 @@ var emit = function (output, nodes) {
   // var nodeslen = computeOffsets(nodes); // unused variable?
 
   // 12-byte header with version number
-  output.push('F'.toCharCode());
-  output.push('x'.toCharCode());
-  output.push('O'.toCharCode());
-  output.push('S'.toCharCode());
-  output.push('D'.toCharCode());
-  output.push('I'.toCharCode());
-  output.push('C'.toCharCode());
-  output.push('T'.toCharCode());
+  output.push('F'.charCodeAt(0));
+  output.push('x'.charCodeAt(0));
+  output.push('O'.charCodeAt(0));
+  output.push('S'.charCodeAt(0));
+  output.push('D'.charCodeAt(0));
+  output.push('I'.charCodeAt(0));
+  output.push('C'.charCodeAt(0));
+  output.push('T'.charCodeAt(0));
   output.push(0);
   output.push(0);
   output.push(0);
@@ -397,8 +398,9 @@ var emit = function (output, nodes) {
   // Output a table of letter frequencies. The search algorithm may
   // want to use this to decide which diacritics to try, for example.
   var ch;
-  var characters =
-    [for (ch of characterFrequency) {ch: ch, freq: characterFrequency[ch]}];
+  var characters = Object.keys(characterFrequency).map(function(ch) {
+    return {ch: ch, freq: characterFrequency[ch]};
+  });
   characters.sort(function (chFreq1, chFreq2){ return chFreq2.freq - chFreq1.freq; });
 
   // JS conversion note on 16-bit and 32-bit writing:
@@ -409,7 +411,7 @@ var emit = function (output, nodes) {
   output.push(characters.length & 0xFF);
 
   characters.forEach(function (chFreq) {
-    var charCode = String.toCharCode(chFreq.ch);
+    var charCode = chFreq.ch.charCodeAt(0);
 
     output.push((charCode >> 8) & 0xFF);
     output.push(charCode & 0xFF);
@@ -422,11 +424,13 @@ var emit = function (output, nodes) {
   });
 
   // Write the nodes of the tree to the array.
-  nodes.forEach(function(node) {emitNode(output, node));
+  nodes.forEach(function(node) {emitNode(output, node)});
 };
 
 var word;
-words = [for (word of words) {w: word, f: 0.3}];
+words = words.map(function(word) {
+  return {w: word, f: 0.3};
+});
 
 console.log('[1/4] Reading list and creating TST ...');
 
@@ -434,21 +438,22 @@ var tstRoot = null;
 var tree = new TSTTree();
 
 words.forEach(function(wordFreq) {
-  var {w: word, f: freq} = wordFreq;
+  var word = wordFreq.w;
+  var freq = wordFreq.f;
 
   // Find the longest word in the dictionary
   maxWordLength = Math.max(maxWordLength, word.length);
 
-  tree.insert(tstRoot, word + _EndOfWord, freq);
+  tstRoot = tree.insert(tstRoot, word + _EndOfWord, freq);
 
   // keep track of the letter frequencies
-  for (var ch of word) {
+  word.split('').forEach(function(ch){
     if (ch in characterFrequency) {
       characterFrequency[ch]++;
     } else {
       characterFrequency[ch] = 1;
     }
-  }
+  });
 
   _WordCounter++;
   if (0 === _WordCounter % 10000){

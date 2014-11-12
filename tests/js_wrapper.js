@@ -14,7 +14,7 @@ fs.readFile('cases/' + caseName, 'utf8', function(err, data){
 		if(!exists){
 			fs.mkdirSync('outputs');
 		}
-		fs.writeFile('outputs/' + caseName + '.js.out', uint8ArrayBlob, function(err){
+		fs.writeFile('outputs/' + caseName + '.js.out', new Buffer(uint8ArrayBlob), 'binary', function(err){
 			if(err) throw err;
 		});
 	});
