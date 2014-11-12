@@ -444,14 +444,16 @@ def emit(output, nodes):
         emitNode(output, node)
 
 
-if __name == "__main__":
+if __name__ == "__main__":
     # read input file
     import sys
+    import os
+
     input_file = open("cases/" + sys.argv[1], "r")
 
-    words = [line.strip for line in input_file.readlines()]
+    words = [line.strip() for line in input_file.readlines()]
 
-    input_case.close()
+    input_file.close()
 
     words = [(word, 0.3) for word in words]
 
@@ -463,7 +465,7 @@ if __name == "__main__":
     for wordFreq in words:
         word, freq = wordFreq
         maxWordLength = max(maxWordLength, len(word))
-        tree.insert(tstRoot, word + _EndOfWord, freq)
+        tstRoot = tree.insert(tstRoot, word + _EndOfWord, freq)
 
         for ch in word:
             if ch in characterFrequency:
@@ -471,7 +473,7 @@ if __name == "__main__":
             else:
                 characterFrequency[ch] = 1
 
-        _WordCounter++;
+        _WordCounter += 1
         if _WordCounter % 10000 == 0:
             print ("          >>> (' + _WordCounter + ' words read)" );
 
@@ -482,6 +484,10 @@ if __name == "__main__":
     nodes = serializeTree(tstRoot)
 
     print ("[4/4] Emitting TST ...")
-    output = open(sys.argv[1] + ".py.out", "wb")
+
+    if not os.path.exists('outputs'):
+        os.makedirs('outputs')
+
+    output = open("outputs/" + sys.argv[1] + ".py.out", "wb")
     emit(output, nodes)
     output.close()
