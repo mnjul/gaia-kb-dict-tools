@@ -444,38 +444,44 @@ def emit(output, nodes):
         emitNode(output, node)
 
 
-words = []
+if __name == "__main__":
+    # read input file
+    import sys
+    input_file = open("cases/" + sys.argv[1], "r")
 
-words = [(word, 0.3) for word in words]
+    words = [line.strip for line in input_file.readlines()]
 
-tstRoot = None
-tree = TSTTree()
+    input_case.close()
 
-print ("[1/4] Reading XML wordlist and creating TST ..." )
+    words = [(word, 0.3) for word in words]
 
-for wordFreq in words:
-    word, freq = wordFreq
-    maxWordLength = max(maxWordLength, len(word))
-    tree.insert(tstRoot, word + _EndOfWord, freq)
+    tstRoot = None
+    tree = TSTTree()
 
-    for ch in word:
-        if ch in characterFrequency:
-            characterFrequency[ch] += 1
-        else:
-            characterFrequency[ch] = 1
+    print ("[1/4] Reading XML wordlist and creating TST ..." )
 
-    _WordCounter++;
-    if _WordCounter % 10000 == 0:
-        print ("          >>> (' + _WordCounter + ' words read)" );
+    for wordFreq in words:
+        word, freq = wordFreq
+        maxWordLength = max(maxWordLength, len(word))
+        tree.insert(tstRoot, word + _EndOfWord, freq)
 
-print ("[2/4] Balancing Ternary Search Tree ...")
-tstRoot = tree.balance(tstRoot)
+        for ch in word:
+            if ch in characterFrequency:
+                characterFrequency[ch] += 1
+            else:
+                characterFrequency[ch] = 1
 
-print ("[3/4] Serializing TST ...");
-nodes = serializeTree(tstRoot)
+        _WordCounter++;
+        if _WordCounter % 10000 == 0:
+            print ("          >>> (' + _WordCounter + ' words read)" );
 
-print ("[4/4] Emitting TST ...")
-output = open("out", "wb")
-emit(output, nodes)
-output.close()
+    print ("[2/4] Balancing Ternary Search Tree ...")
+    tstRoot = tree.balance(tstRoot)
 
+    print ("[3/4] Serializing TST ...");
+    nodes = serializeTree(tstRoot)
+
+    print ("[4/4] Emitting TST ...")
+    output = open(sys.argv[1] + ".py.out", "wb")
+    emit(output, nodes)
+    output.close()
