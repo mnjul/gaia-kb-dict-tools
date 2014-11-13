@@ -6,8 +6,7 @@ Some scripts related to Mozilla Boot-2-Gecko (Firefox OS) Gaia Keyboard dictiona
 # Todo
 * Test list2dict.js integratedly against original Python script
  * Write more test cases
-* Write removeNode for JS
-* Adapt predictions.js for reading tree blobs for tree modifications
+* Test the predictions.js engine for built blob
 
 # Requirements
 * The JavaScript is written with a lot ES6, and newer Node.js versions are required.
