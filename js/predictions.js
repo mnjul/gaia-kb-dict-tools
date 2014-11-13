@@ -1,5 +1,12 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/*
+ * This file is copied from latin ime to test how predictions.js works
+ * if we have uniformly-0 frequency.
+ * Script is modified to work with Node.js, for sure.
+ */
+
 //
 // This is a JavaScript predictive text engine: given a dictionary, a data
 // structure that specifies which keys are near which other keys, and
@@ -1008,3 +1015,8 @@ var Predictions = function() {
     predict: predict
   };
 }();
+
+
+if (module) {
+  module.exports.Predictions = Predictions;
+}

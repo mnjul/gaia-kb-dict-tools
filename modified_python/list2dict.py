@@ -457,7 +457,7 @@ if __name__ == "__main__":
 
     input_file.close()
 
-    words = [(word, 0) for word in words]
+    words = [(word, 0.9) for word in words]
 
     tstRoot = None
     tree = TSTTree()
