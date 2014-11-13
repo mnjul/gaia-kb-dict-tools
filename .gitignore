@@ -1,4 +1,4 @@
 **/.DS_Store
 /tests/outputs
-/tests/node_modules
+**/node_modules
 **/*.pyc
