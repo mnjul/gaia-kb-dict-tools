@@ -18,16 +18,23 @@ fs.readFile('../tests/cases/en_all', 'utf8', function(err, data){
   var words = data.split('\n');
   words = words.filter(function(word){ return word.length > 0;});
 
-  function toArrayBuffer(buffer) {
-      var ab = new ArrayBuffer(buffer.length);
-      var view = new Uint8Array(ab);
-      for (var i = 0; i < buffer.length; ++i) {
-          view[i] = buffer[i];
-      }
-      return ab;
-  }
+  /*
+   * new Uint8Array(new Uint8Array([1, 2, 3, 4]), 2) gives Uint8Array([1, 2, 3, 4]) instead of
+   * Uint8Array([3, 4]), which makes predictions.js fail.
+   * We must manual convert to ArrayBuffer by converting to Node Buffer first.
+   */
 
-  startRepl(toArrayBuffer(new Buffer(List2Dict.wordsToUint8ArrayBlob(words))));
+  var toArrayBuffer = function(u8Buffer) {
+    var buffer = new Buffer(u8Buffer);
+    var arrayBuffer = new ArrayBuffer(buffer.length);
+    var arrayBufferU8View = new Uint8Array(arrayBuffer);
+    for (var i = 0; i < buffer.length; ++i) {
+        arrayBufferU8View[i] = buffer[i];
+    }
+    return arrayBuffer;
+  };
+
+  startRepl(toArrayBuffer(List2Dict.wordsToUint8ArrayBlob(words)));
 });
 
 // Brute-forcefully dumped this from gaia runtime.
@@ -56,7 +63,6 @@ function startRepl(uint8ArrayBlob){
       cmd = cmd.trim();
 
       var success = function(words) {
-        console.trace();
         callback(undefined, words);
       };
 
