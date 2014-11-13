@@ -451,6 +451,8 @@ var emit = function (output, nodes) {
 };
 
 words = words.map(function(word) {
+  // note: uniform frequency. We can't use 0 (special meaning for prediction engine)
+  // and we can't use 1 either (which overflows after normalization), so just use a 0.9
   return {w: word, f: 0.9};
 });
 
