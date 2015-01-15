@@ -9,7 +9,7 @@ fs.readFile('cases/' + caseName, 'utf8', function(err, data){
 	var words = data.split('\n');
 	words = words.filter(function(word){ return word.length > 0;});
 
-	var uint8ArrayBlob = (new List2Dict.TSTConverter()).fromWords(words);
+	var uint8ArrayBlob = (new List2Dict.TSTConverter(words)).toBlob();
 
 	fs.exists('outputs', function(exists){
 		if(!exists){

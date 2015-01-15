@@ -16,8 +16,9 @@ __Note: All words in user dictionary have the same frequency!__
  * Ubuntu 14.04 x64
 
 # The File
-The file is list2dict.js. It exports a `TSTConverter` class, whose `fromWords` function receives
-an array of user dictionary words. It returns an Uint8Array of the generated dictionary blob.
+The file is list2dict.js. It exports a `TSTConverter` class, whose constructor takes an Array of
+user dictionary words. Call the insatntiated object's `toBlob` function to retrieve the Uint8Array
+of the generated dictionary blob.
 
 # Running tests
 * Basically, tests of correctness are carried out by comparing the binary blob result of the JS
@@ -58,3 +59,16 @@ V8 doesn't sort stably :(
  2. Run `node --harmony prediction_wrapper.js`
 * Again, the JS codes have quite some bleeding-edge ES6 features (as we'll finally migrate
   into Gecko), so please make sure of your Node version.
+
+# Fail-safe beyond latin characters
+* A small amount of test cases include non-latin characters: `chinese`, `arabic`, `hindi`, and `thai`.
+  They're currently used to make sure the the blob converter and latin IME prediction engine
+  won't crash on blobs that encode such characters.
+* We currently do not have plans to support predictions beyond latin IME, so the top priority might be
+  to make sure words containing such characters won't interfere with "normal" words that don't contain
+  such characters.
+ 1. Switch to ./js dictionary
+ 2. Run `node --harmony prediction_wrapper_arg.js chinese`
+ 3. Enter `apple`
+ 4. Observe that `apple一二三` is correctly retrieved.
+* `arabic` is known to fail the comparison test in the above section.

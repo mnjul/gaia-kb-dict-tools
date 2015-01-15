@@ -8,7 +8,7 @@ def test_single(test_name):
 	print "Python..."
 	subprocess.call(["python", "../modified_python/list2dict.py", test_name])
 
-	print "JavaSCript..."
+	print "JavaScript..."
 	subprocess.call(["node", "--harmony", "js_wrapper.js", test_name])
 
 	print "diff..."

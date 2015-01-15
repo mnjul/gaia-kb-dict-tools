@@ -39,14 +39,10 @@ const _DiacriticIndex = {
   'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ'
 };
 
-var _Diacritics = {}; // the mapping from accented to non-accented letters
-
-// Build the _Diacritics mapping
-Object.keys(_DiacriticIndex).forEach(function(letter) {
-  _DiacriticIndex[letter].split('').forEach(function(diacritic){
-    _Diacritics[diacritic] = letter;
-  });
-});
+// the mapping from accented to non-accented letters
+// JSConv: We build the mapping when TSTConverter is instantiated
+// for the first time
+var _Diacritics;
 
 // Data Structure for TST Tree
 
@@ -265,7 +261,20 @@ TSTTree.prototype.balance = function(root) {
   return root;
 };
 
-var TSTConverter = function() {
+var TSTConverter = function(words) {
+  if (undefined === _Diacritics) {
+    _Diacritics = {};
+    // Build the _Diacritics mapping
+    Object.keys(_DiacriticIndex).forEach(function(letter) {
+      _DiacriticIndex[letter].split('').forEach(function(diacritic){
+        _Diacritics[diacritic] = letter;
+      });
+    });
+  }
+
+  this.blob = undefined;
+  this.words = words;
+
   // How many times do we use each character in this language
   this.characterFrequency = {};
   this.maxWordLength = 0;
@@ -335,7 +344,7 @@ TSTConverter.prototype.computeOffsets = function(nodes) {
   });
 
   return offset;
-}
+};
 
 // JSConv:
 // In the JS version, since we're not directly writing to a file,
@@ -384,10 +393,8 @@ TSTConverter.prototype.emitNode = function(output, node) {
 };
 
 TSTConverter.prototype.emit = function(output, nodes) {
-  // JSConv: nodeslen isn't used, but computeOffsets would mutate nodes,
-  // so we need to call it
-  var nodeslen = this.computeOffsets(nodes);
-  nodeslen;
+  // JSConv: `nodeslen` in original code isn't used
+  this.computeOffsets(nodes);
 
   // 12-byte header with version number
   output.push('F'.charCodeAt(0));
@@ -450,10 +457,17 @@ TSTConverter.prototype.emit = function(output, nodes) {
   }, this);
 };
 
-TSTConverter.prototype.fromWords = function(words) {
+TSTConverter.prototype.toBlob = function() {
+  if (this.blob) {
+    return this.blob;
+  }
+
+  var words = this.words;
+
   words = words.map(function(word) {
-    // JSConv: uniform frequency. We can't use 0 (special meaning for prediction engine)
-    // and we can't use 1 either (which overflows after normalization), so just use a 0.9
+    // JSConv: uniform frequency. We can't use 0 (special meaning for prediction
+    // engine) and we can't use 1 either (which overflows after normalization),
+    // so just use a 0.9
     return {w: word, f: 0.9};
   });
 
@@ -486,7 +500,8 @@ TSTConverter.prototype.fromWords = function(words) {
   var outputArray = [];
   this.emit(outputArray, nodes);
 
-  return new Uint8Array(outputArray);
+  this.blob = new Uint8Array(outputArray);
+  return this.blob;
 };
 
 if (module) {
