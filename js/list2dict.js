@@ -2,24 +2,13 @@
 
 /* global module */
 
-/* This script is largely Python-to-JavaScript from xml2dict.py, especially
-   for tree construction algorithms. */
-
-/* The script has to be tested with Node so not all ES6 features are used. */
-
-function wordsToUint8ArrayBlob(words) {
-
-var _NodeCounter = 0;
-// var _NodeRemoveCounter = 0; // unused variable
-// var _NodeVisitCounter = 0; // unused variable
-var _EmitCounter = 0;
-var _WordCounter = 0;
+/*
+ * This script is largely Python-to-JavaScript conversion from xml2dict.py.
+ * Old comments are copied here, except those beginning with "JSConv", which
+ * are comments during the conversion.
+ */
 
 const _EndOfWord = String.fromCharCode(0);
-
-// How many times do we use each character in this language
-var characterFrequency = {};
-var maxWordLength = 0;
 
 const _DiacriticIndex = {
   'a': 'ÁáĂăǍǎÂâÄäȦȧẠạȀȁÀàẢảȂȃĀāĄąÅåḀḁȺⱥÃãǼǽǢǣÆæ',
@@ -63,8 +52,6 @@ Object.keys(_DiacriticIndex).forEach(function(letter) {
 
 // Constructor for creating a new TSTNode
 var TSTNode = function(ch) {
-  _NodeCounter++;
-
   this.ch = ch;
   this.left = this.center = this.right = null;
   this.frequency = 0; // maximum frequency
@@ -209,7 +196,7 @@ TSTTree.prototype.sortLevelByFreq = function(node) {
   // Sort by frequency joining nodes with lowercase/uppercase/accented
   // versions of the same character
 
-  // JS converstion note: Make total ordering to ease consistency check
+  // JSConv: Make total ordering to ease consistency check
   // with original Python script
   nodes.sort(function(node1, node2){
     if (node1.ch != node2.ch){
@@ -278,17 +265,25 @@ TSTTree.prototype.balance = function(root) {
   return root;
 };
 
+var TSTConverter = function() {
+  // How many times do we use each character in this language
+  this.characterFrequency = {};
+  this.maxWordLength = 0;
+};
+
+TSTConverter.prototype._DEBUG = false;
+
+TSTConverter.prototype.debug = function(msg) {
+  if (this._DEBUG) {
+    console.log(msg);
+  }
+};
+
 // Serialize the tree to an array. Do it depth first, folling the
 // center pointer first because that might give us better locality
-var serializeNode = function (node, output) {
+TSTConverter.prototype.serializeNode = function(node, output) {
   output.push(node);
   node.offset = output.length;
-
-  _EmitCounter += 1;
-  if (_EmitCounter % 100000 === 0) {
-    console.log(' >>> (serializing ' + _EmitCounter + '/' +
-          _NodeCounter + ')');
-  }
 
   if (node.ch == _EndOfWord && node.center) {
     console.log('nul node with a center!');
@@ -299,27 +294,27 @@ var serializeNode = function (node, output) {
 
   // do the center node first so words are close together
   if (node.center) {
-    serializeNode(node.center, output);
+    this.serializeNode(node.center, output);
   }
 
   if (node.left) {
-    serializeNode(node.left, output);
+    this.serializeNode(node.left, output);
   }
 
   if (node.right) {
-    serializeNode(node.right, output);
+    this.serializeNode(node.right, output);
   }
 };
 
-var serializeTree = function (root) {
+TSTConverter.prototype.serializeTree = function(root) {
   var output = [];
-  serializeNode(root, output);
+  this.serializeNode(root, output);
   return output;
 };
 
 // Make a pass through the array of nodes and figure out the size and offset
 // of each one.
-function computeOffsets(nodes) {
+TSTConverter.prototype.computeOffsets = function(nodes) {
   var offset = 0;
 
   nodes.forEach(function(node) {
@@ -342,18 +337,21 @@ function computeOffsets(nodes) {
   return offset;
 }
 
+// JSConv:
 // In the JS version, since we're not directly writing to a file,
 // 'output' is a JS array. We convert to UInt8Array when we
 // finishes pushing to 'output'. This is because UInt8Array's length
 // has to be decided at instantiation.
+// XXX: See if we can pre-determine the length when instantiating
+//      the buffer.
 
-var writeUint24 = function (output, x) {
+TSTConverter.prototype.writeUint24 = function(output, x) {
   output.push((x >> 16) & 0xFF);
   output.push((x >> 8) & 0xFF);
   output.push(x & 0xFF);
 };
 
-var emitNode = function (output, node) {
+TSTConverter.prototype.emitNode = function(output, node) {
   var charcode = (node.ch == _EndOfWord) ? 0 : node.ch.charCodeAt(0);
 
   var cbit = (0 !== charcode) ? 0x80 : 0;
@@ -381,14 +379,14 @@ var emitNode = function (output, node) {
 
   // Write the next node if we have one
   if (nbit) {
-    writeUint24(output, node.next.offset);
+    this.writeUint24(output, node.next.offset);
   }
 };
 
-var emit = function (output, nodes) {
-  // nodeslen isn't used, but computeOffsets would mutate nodes,
+TSTConverter.prototype.emit = function(output, nodes) {
+  // JSConv: nodeslen isn't used, but computeOffsets would mutate nodes,
   // so we need to call it
-  var nodeslen = computeOffsets(nodes);
+  var nodeslen = this.computeOffsets(nodes);
   nodeslen;
 
   // 12-byte header with version number
@@ -407,15 +405,15 @@ var emit = function (output, nodes) {
 
   // Output the length of the longest word in the dictionary.
   // This allows to easily reject input that is longer
-  output.push(Math.min(maxWordLength, 255));
+  output.push(Math.min(this.maxWordLength, 255));
 
   // Output a table of letter frequencies. The search algorithm may
   // want to use this to decide which diacritics to try, for example.
-  var characters = Object.keys(characterFrequency).map(function(ch) {
-    return {ch: ch, freq: characterFrequency[ch]};
-  });
+  var characters = Object.keys(this.characterFrequency).map(function(ch) {
+    return {ch: ch, freq: this.characterFrequency[ch]};
+  }, this);
 
-  // JS converstion note: Python seems retain alphabetical other of "ch"
+  // JSConv: Python seems retain alphabetical other of "ch"
   // when freq is the same.
   characters.sort(function (chFreq1, chFreq2){
     if (chFreq2.freq == chFreq1.freq) {
@@ -425,7 +423,7 @@ var emit = function (output, nodes) {
     }
   });
 
-  // JS conversion note on 16-bit and 32-bit writing:
+  // JSConv: on 16-bit and 32-bit writing:
   // The original Python code used big-endian conversion, so we
   // push MSB first down to LSB.
 
@@ -433,7 +431,7 @@ var emit = function (output, nodes) {
 
   output.push(characters.length & 0xFF);
 
-  characters.forEach(function (chFreq) {
+  characters.forEach(function(chFreq) {
     var charCode = chFreq.ch.charCodeAt(0);
 
     output.push((charCode >> 8) & 0xFF);
@@ -447,63 +445,50 @@ var emit = function (output, nodes) {
   });
 
   // Write the nodes of the tree to the array.
-  nodes.forEach(function(node) {emitNode(output, node);});
+  nodes.forEach(function(node) {
+    this.emitNode(output, node);
+  }, this);
 };
 
-words = words.map(function(word) {
-  // note: uniform frequency. We can't use 0 (special meaning for prediction engine)
-  // and we can't use 1 either (which overflows after normalization), so just use a 0.9
-  return {w: word, f: 0.9};
-});
-
-console.log('[1/4] Reading list and creating TST ...');
-
-var tstRoot = null;
-var tree = new TSTTree();
-
-words.forEach(function(wordFreq) {
-  var word = wordFreq.w;
-  var freq = wordFreq.f;
-
-  // Find the longest word in the dictionary
-  maxWordLength = Math.max(maxWordLength, word.length);
-
-  tstRoot = tree.insert(tstRoot, word + _EndOfWord, freq);
-
-  // keep track of the letter frequencies
-  word.split('').forEach(function(ch){
-    if (ch in characterFrequency) {
-      characterFrequency[ch]++;
-    } else {
-      characterFrequency[ch] = 1;
-    }
+TSTConverter.prototype.fromWords = function(words) {
+  words = words.map(function(word) {
+    // JSConv: uniform frequency. We can't use 0 (special meaning for prediction engine)
+    // and we can't use 1 either (which overflows after normalization), so just use a 0.9
+    return {w: word, f: 0.9};
   });
 
-  _WordCounter++;
-  if (0 === _WordCounter % 10000){
-    console.log('          >>> (' + _WordCounter + ' words read)');
-  }
-});
+  var tstRoot = null;
+  var tree = new TSTTree();
 
-console.log('[2/4] Balancing Ternary Search Tree ...');
-tstRoot = tree.balance(tstRoot);
+  words.forEach(function(wordFreq) {
+    var word = wordFreq.w;
+    var freq = wordFreq.f;
 
-console.log('[3/4] Serializing TST ...');
-var nodes = serializeTree(tstRoot);
+    // Find the longest word in the dictionary
+    this.maxWordLength = Math.max(this.maxWordLength, word.length);
 
-console.log('[4/4] Emitting TST ...');
-var outputArray = [];
-emit(outputArray, nodes);
+    tstRoot = tree.insert(tstRoot, word + _EndOfWord, freq);
 
-var outputUint8Array = new Uint8Array(outputArray);
+    // keep track of the letter frequencies
+    word.split('').forEach(function(ch) {
+      if (ch in this.characterFrequency) {
+        this.characterFrequency[ch]++;
+      } else {
+        this.characterFrequency[ch] = 1;
+      }
+    }, this);
+  }, this);
 
-// remember to keep outputUint8Array for future usage :)
+  tstRoot = tree.balance(tstRoot);
 
-return outputUint8Array;
+  var nodes = this.serializeTree(tstRoot);
 
+  var outputArray = [];
+  this.emit(outputArray, nodes);
 
-}
+  return new Uint8Array(outputArray);
+};
 
 if (module) {
-  module.exports.wordsToUint8ArrayBlob = wordsToUint8ArrayBlob;
+  module.exports.TSTConverter = TSTConverter;
 }

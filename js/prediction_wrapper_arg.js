@@ -34,7 +34,7 @@ fs.readFile('../tests/cases/' + process.argv[2], 'utf8', function(err, data){
     return arrayBuffer;
   };
 
-  startRepl(toArrayBuffer(List2Dict.wordsToUint8ArrayBlob(words)));
+  startRepl(toArrayBuffer((new List2Dict.TSTConverter()).fromWords(words)));
 });
 
 // Brute-forcefully dumped this from gaia runtime.

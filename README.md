@@ -16,7 +16,7 @@ __Note: All words in user dictionary have the same frequency!__
  * Ubuntu 14.04 x64
 
 # The File
-The file is list2dict.js. It exports a `wordsToUint8ArrayBlob()` function, which receives
+The file is list2dict.js. It exports a `TSTConverter` class, whose `fromWords` function receives
 an array of user dictionary words. It returns an Uint8Array of the generated dictionary blob.
 
 # Running tests
