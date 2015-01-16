@@ -240,10 +240,10 @@ TSTConverter.prototype.serializeNode = function(node, output) {
   node.offset = output.length;
 
   if (node.ch == _EndOfWord && node.center) {
-    console.log('nul node with a center!');
+    this.debug('nul node with a center!');
   }
   if (node.ch != _EndOfWord && !node.center) {
-    console.log('char node with no center!');
+    this.debug('char node with no center!');
   }
 
   // do the center node first so words are close together
