@@ -6,7 +6,7 @@ Some scripts related to Mozilla Boot-2-Gecko (Firefox OS) Gaia Keyboard user dic
 __Note: All words in user dictionary have the same frequency!__
 
 # Todo
-* Maybe optimize code due to uniform frequency
+* (currently none)
 
 # Requirements
 * The JavaScript is written with a lot ES6, and newer Node.js versions are required.
@@ -20,9 +20,11 @@ The file is list2dict.js. It exports a `TSTConverter` class, whose constructor t
 user dictionary words. Call the insatntiated object's `toBlob` function to retrieve the Uint8Array
 of the generated dictionary blob.
 
-# Running tests
-* Basically, tests of correctness are carried out by comparing the binary blob result of the JS
-  codes and the Python codes, both running against the same test case.
+# Tests
+
+## Blob-Comparison Tests
+* Basically, tests of "total" correctness are carried out by comparing the binary blob results,
+  byte-by-byte, of the JS codes and the Python codes, both running against the same test case.
 * Test cases reside in ./test/cases, which contain lists of words, one word a line.
 * Semi-automated testing
  1. Switch to ./tests directory
@@ -31,10 +33,10 @@ of the generated dictionary blob.
      * Failed test cases will be reported
  3. Test script compares blob results with only a "diff" call, which is pretty naïve.
      * What can we do to improve this?
- 4. Alternatively, run `python test_single.py [testcase]` to test for only single test
+ 4. Alternatively, run `python test_single.py [testcase]` to test for only single test.
      * `[testcase]` is any filename in ./tests/cases
 
-## Python code changes
+### Python code changes
 The naïve byte-by-byte comparison of JS and Python code results is problematic when we
 only sort data structures partially. For example, consider the following
 character frequency list:
@@ -53,22 +55,24 @@ list items to compare.
 The issue arises mostly because we test the whole thing in Node: It appears that
 V8 doesn't sort stably :(
 
-# Prediction tests
+## Prediction Tests
 * A modified predictions.js (from Gaia) is provided to test the generated blob for predictions:
  1. Switch to ./js dictionary
  2. Run `node --harmony prediction_wrapper.js`
-* Again, the JS codes have quite some bleeding-edge ES6 features (as we'll finally migrate
-  into Gecko), so please make sure of your Node version.
 
-# Fail-safe beyond latin characters
+# Failure-Safe -- Beyond Latin Characters
 * A small amount of test cases include non-latin characters: `chinese`, `arabic`, `hindi`, and `thai`.
   They're currently used to make sure the the blob converter and latin IME prediction engine
   won't crash on blobs that encode such characters.
 * We currently do not have plans to support predictions beyond latin IME, so the top priority might be
-  to make sure words containing such characters won't interfere with "normal" words that don't contain
+  making sure words containing such characters won't interfere with "normal" words that don't contain
   such characters.
  1. Switch to ./js dictionary
  2. Run `node --harmony prediction_wrapper_arg.js chinese`
  3. Enter `apple`
  4. Observe that `apple一二三` is correctly retrieved.
 * `arabic` is known to fail the comparison test in the above section.
+
+# Footnotes
+* Again, the JS codes have quite some bleeding-edge ES6 features (as we'll finally migrate
+  into Gecko), so please make sure of your Node version.
