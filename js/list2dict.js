@@ -10,40 +10,6 @@
 
 const _EndOfWord = String.fromCharCode(0);
 
-const _DiacriticIndex = {
-  'a': 'ÁáĂăǍǎÂâÄäȦȧẠạȀȁÀàẢảȂȃĀāĄąÅåḀḁȺⱥÃãǼǽǢǣÆæ',
-  'b': 'ḂḃḄḅƁɓḆḇɃƀƂƃ',
-  'c': 'ĆćČčÇçĈĉĊċƇƈȻȼ',
-  'd': 'ĎďḐḑḒḓḊḋḌḍƊɗḎḏĐđƋƌð',
-  'e': 'ÉéĔĕĚěȨȩÊêḘḙËëĖėẸẹȄȅÈèẺẻȆȇĒēĘę',
-  'f': 'ḞḟƑƒ',
-  'g': 'ǴǵĞğǦǧĢģĜĝĠġƓɠḠḡǤǥ',
-  'h': 'ḪḫȞȟḨḩĤĥⱧⱨḦḧḢḣḤḥĦħ',
-  'i': 'ÍíĬĭǏǐÎîÏïỊịȈȉÌìỈỉȊȋĪīĮįƗɨĨĩḬḭı',
-  'j': 'ĴĵɈɉ',
-  'k': 'ḰḱǨǩĶķⱩⱪꝂꝃḲḳƘƙḴḵꝀꝁ',
-  'l': 'ĹĺȽƚĽľĻļḼḽḶḷⱠⱡꝈꝉḺḻĿŀⱢɫŁł',
-  'm': 'ḾḿṀṁṂṃⱮɱ',
-  'n': 'ŃńŇňŅņṊṋṄṅṆṇǸǹƝɲṈṉȠƞÑñ',
-  'o': 'ÓóŎŏǑǒÔôÖöȮȯỌọŐőȌȍÒòỎỏƠơȎȏꝊꝋꝌꝍŌōǪǫØøÕõŒœ',
-  'p': 'ṔṕṖṗꝒꝓƤƥⱣᵽꝐꝑ',
-  'q': 'Ꝗꝗ',
-  'r': 'ŔŕŘřŖŗṘṙṚṛȐȑȒȓṞṟɌɍⱤɽ',
-  's': 'ŚśŠšŞşŜŝȘșṠṡṢṣß$',
-  't': 'ŤťŢţṰṱȚțȾⱦṪṫṬṭƬƭṮṯƮʈŦŧ',
-  'u': 'ÚúŬŭǓǔÛûṶṷÜüṲṳỤụŰűȔȕÙùỦủƯưȖȗŪūŲųŮůŨũṴṵ',
-  'v': 'ṾṿƲʋṼṽ',
-  'w': 'ẂẃŴŵẄẅẆẇẈẉẀẁⱲⱳ',
-  'x': 'ẌẍẊẋ',
-  'y': 'ÝýŶŷŸÿẎẏỴỵỲỳƳƴỶỷỾỿȲȳɎɏỸỹ',
-  'z': 'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ'
-};
-
-// the mapping from accented to non-accented letters
-// JSConv: We build the mapping when TSTConverter is instantiated
-// for the first time
-var _Diacritics;
-
 // Data Structure for TST Tree
 
 // Constructor for creating a new TSTNode
@@ -163,17 +129,6 @@ TSTTree.prototype.balanceLevel = function(node) {
   return node;
 };
 
-// balance level of TST
-TSTTree.prototype.normalizeChar = function(ch) {
-  ch = ch.toLowerCase();
-
-  if (ch in _Diacritics) {
-    ch = _Diacritics[ch];
-  }
-
-  return ch;
-};
-
 TSTTree.prototype.collectLevel = function(level, node) {
   if (!node) {
     return;
@@ -184,7 +139,7 @@ TSTTree.prototype.collectLevel = function(level, node) {
   this.collectLevel(level, node.right);
 };
 
-TSTTree.prototype.sortLevelByFreq = function(node) {
+TSTTree.prototype.sortAndAnnotate = function(node) {
   // Collect nodes on the same level
   var nodes = [];
   this.collectLevel(nodes, node);
@@ -242,7 +197,7 @@ TSTTree.prototype.balanceTree = function(node) {
 
   // promote to root the letter with the highest maximum frequency
   // of a suffix starting with this letter
-  node = this.promoteNodeToRoot(node, this.sortLevelByFreq(node));
+  node = this.promoteNodeToRoot(node, this.sortAndAnnotate(node));
 
   // balance other letters on this level of the tree
   node.left = this.balanceLevel(node.left);
@@ -262,16 +217,6 @@ TSTTree.prototype.balance = function(root) {
 };
 
 var TSTConverter = function(words) {
-  if (undefined === _Diacritics) {
-    _Diacritics = {};
-    // Build the _Diacritics mapping
-    Object.keys(_DiacriticIndex).forEach(function(letter) {
-      _DiacriticIndex[letter].split('').forEach(function(diacritic){
-        _Diacritics[diacritic] = letter;
-      });
-    });
-  }
-
   this.blob = undefined;
   this.words = words;
 
