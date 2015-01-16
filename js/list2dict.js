@@ -18,7 +18,6 @@ const _DEBUG = true;
 var TSTNode = function(ch) {
   this.ch = ch;
   this.left = this.center = this.right = null;
-  this.frequency = 0;
   // store the count for balancing the tst
   this.count = 0;
 };
@@ -29,7 +28,7 @@ var TSTTree = function(ch) {
 };
 
 // Insert a word into the TSTTree
-TSTTree.prototype.insert = function(node, word, freq) {
+TSTTree.prototype.insert = function(node, word) {
   var ch = word[0];
 
   if (!node) {
@@ -37,13 +36,12 @@ TSTTree.prototype.insert = function(node, word, freq) {
   }
 
   if (ch < node.ch) {
-    node.left = this.insert(node.left, word, freq);
+    node.left = this.insert(node.left, word);
   } else if(ch > node.ch) {
-    node.right = this.insert(node.right, word, freq);
+    node.right = this.insert(node.right, word);
   } else {
-    node.frequency = Math.max(node.frequency, freq);
     if (word.length > 1) {
-      node.center = this.insert(node.center, word.substring(1), freq);
+      node.center = this.insert(node.center, word.substring(1));
     }
   }
 
@@ -141,28 +139,13 @@ TSTTree.prototype.collectLevel = function(level, node) {
   this.collectLevel(level, node.right);
 };
 
-TSTTree.prototype.sortLevelByFreq = function(node) {
+TSTTree.prototype.annotateNodes = function(node) {
   // Collect nodes on the same level
   var nodes = [];
   this.collectLevel(nodes, node);
 
-  // Sort by frequency
-
-  // JSConv: Make total ordering to ease consistency check
-  // with original Python script
   nodes.sort(function(node1, node2){
-    if (node1.ch != node2.ch){
-      return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
-    }else{
-      return node2.frequency - node1.frequency;
-    }
-  });
-  nodes.sort(function(node1, node2){
-    if (node1.frequency != node2.frequency){
-      return node2.frequency - node1.frequency;
-    }else{
-      return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
-    }
+    return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
   });
 
   // Add next/prev pointers to each node
@@ -189,16 +172,13 @@ TSTTree.prototype.promoteNodeToRoot = function(root, node) {
   }
 };
 
-
 // balance the whole TST
 TSTTree.prototype.balanceTree = function(node) {
   if (!node) {
     return;
   }
 
-  // promote to root the letter with the highest maximum frequency
-  // of a suffix starting with this letter
-  node = this.promoteNodeToRoot(node, this.sortLevelByFreq(node));
+  node = this.promoteNodeToRoot(node, this.annotateNodes(node));
 
   // balance other letters on this level of the tree
   node.left = this.balanceLevel(node.left);
@@ -239,14 +219,11 @@ TSTBuilder.prototype.build = function() {
   var tstRoot = null;
   var tree = new TSTTree();
 
-  this.words.forEach(function(wordFreq) {
-    var word = wordFreq.w;
-    var freq = wordFreq.f;
-
+  this.words.forEach(function(word) {
     // Find the longest word in the dictionary
     this.maxWordLength = Math.max(this.maxWordLength, word.length);
 
-    tstRoot = tree.insert(tstRoot, word + _EndOfWord, freq);
+    tstRoot = tree.insert(tstRoot, word + _EndOfWord);
 
     // keep track of the letter frequencies
     word.split('').forEach(function(ch) {
@@ -398,14 +375,8 @@ TSTBlobBuilder.prototype.toBlobArray = function() {
     return {ch: ch, freq: this._characterFrequency[ch]};
   }, this);
 
-  // JSConv: Python seems retain alphabetical other of "ch"
-  // when freq is the same.
   characters.sort(function (chFreq1, chFreq2){
-    if (chFreq2.freq == chFreq1.freq) {
-      return chFreq1.ch.charCodeAt(0) - chFreq2.ch.charCodeAt(0);
-    }else{
-      return chFreq2.freq - chFreq1.freq;
-    }
+    return chFreq2.freq - chFreq1.freq;
   });
 
   // JSConv: on 16-bit and 32-bit writing:
@@ -476,14 +447,8 @@ TSTBlobBuilder.prototype._emitNode = function(node) {
   var sbit = (charcode > 255) ? 0x40 : 0;
   var nbit = node.next ? 0x20 : 0;
 
-  var freq;
-  if (0 === node.frequency) {
-    // zero means profanity
-    freq = 0;
-  } else {
-    // values > 0 map the range 1 to 31
-    freq = 1 + Math.floor(node.frequency * 31);
-  }
+  // JSConv: uniform frequency
+  const freq = 31;
 
   var firstbyte = cbit | sbit | nbit | (freq & 0x1F);
   this._output[this._outputPos++] = firstbyte;
@@ -520,13 +485,6 @@ WordListConverter.prototype.toBlob = function() {
   }
 
   var words = this.words;
-
-  words = words.map(function(word) {
-    // JSConv: uniform frequency. We can't use 0 (special meaning for prediction
-    // engine) and we can't use 1 either (which overflows after normalization),
-    // so just use a 0.9
-    return {w: word, f: 0.9};
-  });
 
   var tstBuilder = new TSTBuilder(words);
   tstBuilder.build();
