@@ -16,7 +16,7 @@ __Note: All words in user dictionary have the same frequency!__
  * Ubuntu 14.04 x64
 
 # The File
-The file is list2dict.js. It exports a `TSTConverter` class, whose constructor takes an Array of
+The file is ./js/list2dict.js. It exports a `TSTConverter` class, whose constructor takes an Array of
 user dictionary words. Call the insatntiated object's `toBlob` function to retrieve the Uint8Array
 of the generated dictionary blob.
 
@@ -57,13 +57,14 @@ V8 doesn't sort stably :(
 
 ## Prediction Tests
 * A modified predictions.js (from Gaia) is provided to test the generated blob for predictions:
- 1. Switch to ./js dictionary
- 2. Run `node --harmony prediction_wrapper.js`
+ 1. Switch to ./tests dictionary
+ 2. Run `node --harmony prediction_wrapper.js en_all`
+     * Alternatively use `de_all` to test against German dictionary.
 
 ## Tests of Re-instantiability and Re-usability of TSTConverter
 * TSTConverter is desigend to be import-once, instantite-multiple-times. A simple modified prediction
   test is provided to make sure that works.
- 1. Switch to ./js dictionary
+ 1. Switch to ./tests dictionary
  2. Run `node --harmony instantiability_test.js`
 
 # Failure-Safe -- Beyond Latin Characters
@@ -73,8 +74,8 @@ V8 doesn't sort stably :(
 * We currently do not have plans to support predictions beyond latin IME, so the top priority might be
   making sure words containing such characters won't interfere with "normal" words that don't contain
   such characters.
- 1. Switch to ./js dictionary
- 2. Run `node --harmony prediction_wrapper_arg.js chinese`
+ 1. Switch to ./tests dictionary
+ 2. Run `node --harmony prediction_wrapper.js chinese`
  3. Enter `apple`
  4. Observe that `apple一二三` is correctly retrieved.
 * `arabic` is known to fail the comparison test in the above section.
