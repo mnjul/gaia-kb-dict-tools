@@ -60,6 +60,12 @@ V8 doesn't sort stably :(
  1. Switch to ./js dictionary
  2. Run `node --harmony prediction_wrapper.js`
 
+## Tests of Re-instantiability and Re-usability of TSTConverter
+* TSTConverter is desigend to be import-once, instantite-multiple-times. A simple modified prediction
+  test is provided to make sure that works.
+ 1. Switch to ./js dictionary
+ 2. Run `node --harmony instantiability_test.js`
+
 # Failure-Safe -- Beyond Latin Characters
 * A small amount of test cases include non-latin characters: `chinese`, `arabic`, `hindi`, and `thai`.
   They're currently used to make sure the the blob converter and latin IME prediction engine
