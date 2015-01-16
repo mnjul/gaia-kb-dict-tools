@@ -1,9 +1,20 @@
-gaia-kb-dict-tools
+gaia-kb-dict-tools (Gaia release branch)
 ==================
 
 Some scripts related to Mozilla Boot-2-Gecko (Firefox OS) Gaia Keyboard user dictionaries.
 
 __Note: All words in user dictionary have the same frequency!__
+
+# Gaia Release Branch
+
+You're on the Gaia release branch of this repo. In this repo:
+* We don't care about the binary byte-to-byte identicalness of JavaScript and Python results - as long 
+  as the prediction results are good.
+* We only assign the fixed frequency value when we generate the blob, not when we grow the TST tree.
+* The above two points mean that we can eliminate some frequency/sorting-related codes that originally
+  arose due to V8's instable sorting algorithm. (And again this repo is meant to be drop into Gecko)
+* We only provide necessary files; only prediction tests are available.
+* Everything should always rebase upon master.
 
 # Todo
 * (currently none)
@@ -22,39 +33,6 @@ of the generated dictionary blob. You're not supposed to directly use helper cla
 TST tree construction/seralization inside the file.
 
 # Tests
-
-## Blob-Comparison Tests
-* Basically, tests of "total" correctness are carried out by comparing the binary blob results,
-  byte-by-byte, of the JS codes and the Python codes, both running against the same test case.
-* Test cases reside in ./test/cases, which contain lists of words, one word a line.
-* Semi-automated testing
-  1. Switch to ./tests directory
-  2. Run `python test.py`
-    * All test cases in ./tests/cases will be run.
-    * Failed test cases will be reported
-  3. Test script compares blob results with only a "diff" call, which is pretty naïve.
-    * What can we do to improve this?
-  4. Alternatively, run `python test_single.py [testcase]` to test for only single test.
-    * `[testcase]` is any filename in ./tests/cases
-
-### Python code changes
-The naïve byte-by-byte comparison of JS and Python code results is problematic when we
-only sort data structures partially. For example, consider the following
-character frequency list:
-`[('a', 1), ('b', 1), ('c', 1), ('d', 1)]`
-The ordering of the list is not critical for predictions.js to work correctly
-since all orderings result in the same score for fuzzy prediction. That is to say, a blob
-storing the list as `[('a', 1), ('b', 1), ('c', 1), ('d', 1)]` is functionally
-identical, in terms of character frequency, to a blob storing it as
-`[('a', 1), ('c', 1), ('d', 1), ('b', 1)]`. However, byte-by-byte diff would flag such
-difference and produce false comparison error. To mitigate this, the Python code
-(together with JS code), used for correctness testing, has been amended to produce
-total orderings of character frequency list: it will always attempt to sort by
-the secondary member of list items if it sees the same primary member of the two
-list items to compare.
-
-The issue arises mostly because we test the whole thing in Node: It appears that
-V8 doesn't sort stably :(
 
 ## Prediction Tests
 * A modified predictions.js (from Gaia) is provided to test the generated blob for predictions:
