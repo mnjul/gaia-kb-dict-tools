@@ -16,7 +16,7 @@ const _EndOfWord = String.fromCharCode(0);
 var TSTNode = function(ch) {
   this.ch = ch;
   this.left = this.center = this.right = null;
-  this.frequency = 0; // maximum frequency
+  this.frequency = 0;
   // store the count for balancing the tst
   this.count = 0;
 };
@@ -144,8 +144,7 @@ TSTTree.prototype.sortAndAnnotate = function(node) {
   var nodes = [];
   this.collectLevel(nodes, node);
 
-  // Sort by frequency joining nodes with lowercase/uppercase/accented
-  // versions of the same character
+  // Sort by frequency
 
   // JSConv: Make total ordering to ease consistency check
   // with original Python script
