@@ -5,7 +5,7 @@ Some scripts related to Mozilla Boot-2-Gecko (Firefox OS) Gaia Keyboard user dic
 
 # Gaia Release Branch
 
-You're on the Gaia release branch of this repo. In this repo:
+You're on the Gaia release branch of this repo. In contrast to the master branch, in this repo:
 * We don't care about the binary byte-to-byte identicalness of JavaScript and Python results - as long 
   as the prediction results are good.
 * The above two points mean that we can eliminate some sorting-related codes that originally arose due
