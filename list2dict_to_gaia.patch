@@ -1,0 +1,22 @@
+# This patch patches js/list2dict.js into what we have in the actual Gaia repository
+# by fixing proper exporting mechanism.
+--- js/list2dict.js	2015-01-28 17:35:04.776684125 +0800
++++ js/word_list_converter.js	2015-01-29 11:40:30.713906773 +0800
+@@ -1,6 +1,6 @@
+ 'use strict';
+ 
+-/* global module */
++(function(exports) {
+ 
+ /*
+  * This script is largely Python-to-JavaScript conversion from xml2dict.py.
+@@ -493,6 +493,6 @@
+   return this.blob;
+ };
+ 
+-if (module) {
+-  module.exports.WordListConverter = WordListConverter;
+-}
++exports.WordListConverter = WordListConverter;
++
++})(window);
