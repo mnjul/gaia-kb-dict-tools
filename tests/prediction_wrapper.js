@@ -18,7 +18,7 @@ fs.readFile('cases/' + process.argv[2], 'utf8', function(err, data){
   var words = data.split('\n');
   words = words.filter(function(word){ return word.length > 0;});
 
-  startRepl(Utils.toArrayBuffer((new List2Dict.TSTConverter(words)).toBlob()));
+  startRepl(Utils.toArrayBuffer((new List2Dict.WordListConverter(words)).toBlob()));
 });
 
 function log(msg) {

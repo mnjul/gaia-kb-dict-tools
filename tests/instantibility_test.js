@@ -43,9 +43,9 @@ read('chinese', function(words){ chinese_words = words; });
 var test = function() {
   log('Testing...')
 
-  var en_converter = new List2Dict.TSTConverter(en_words);
-  var de_converter = new List2Dict.TSTConverter(de_words);
-  var chinese_converter = new List2Dict.TSTConverter(chinese_words);
+  var en_converter = new List2Dict.WordListConverter(en_words);
+  var de_converter = new List2Dict.WordListConverter(de_words);
+  var chinese_converter = new List2Dict.WordListConverter(chinese_words);
 
   var singleTest = function(blob, first, done) {
     var success = function(words) {
