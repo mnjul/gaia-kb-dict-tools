@@ -47,7 +47,7 @@ common word suffixes) because it cannot maintain separate frequency
 data for each word if the words share nodes.
 
 We have moved the documentation (format and example) for the dictionary blob to
-Mozilla Wiki: https://wiki.mozilla.org/Gaia/System/Keyboard/IME/Latin/Dictionary#Dictionary_Blob_Data_Structure
+Mozilla Wiki: https://wiki.mozilla.org/Gaia/System/Keyboard/IME/Latin/Dictionary_Blob
 Please make sure any updates to the codes are reflected in the wiki too.
 
 """
