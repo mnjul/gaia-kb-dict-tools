@@ -368,9 +368,10 @@ TSTBlobBuilder.prototype.toBlobArray = function() {
   //         15 is (header/12B + maxWordLength/1B + charTableEntryCount/2B)
   //         6 is (charCode/2B + charFrequency/4B)
 
-  this._output =
-    new Uint8Array(15 + (6 * Object.keys(this._characterFrequency).length) +
+  this._outputBuffer =
+    new ArrayBuffer(15 + (6 * Object.keys(this._characterFrequency).length) +
                    nodeslen);
+  this._output = new Uint8Array(this._outputBuffer);
 
   this._outputPos = 0;
 
@@ -434,7 +435,7 @@ TSTBlobBuilder.prototype.toBlobArray = function() {
     this._emitNode(node);
   }, this);
 
-  return this._output;
+  return this._output.buffer;
 };
 
 

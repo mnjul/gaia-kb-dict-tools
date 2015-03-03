@@ -65,7 +65,7 @@ var test = function() {
 
     var Predictions = require('../js/predictions.js').Predictions;
 
-    Predictions.setDictionary(Utils.toArrayBuffer(blob));
+    Predictions.setDictionary(blob);
     Predictions.setNearbyKeys(Utils.enNearByKeys);
 
     Predictions.predict('appl', 4, 24, 1, success, error);
