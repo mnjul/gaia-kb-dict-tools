@@ -148,21 +148,11 @@ TSTTree.prototype.sortLevelByFreq = function(node) {
 
   // Sort by frequency
 
-  // JSConv: Make total ordering to ease consistency check
-  // with original Python script
   nodes.sort(function(node1, node2){
-    if (node1.ch != node2.ch){
-      return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
-    }else{
-      return node2.frequency - node1.frequency;
-    }
+    return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
   });
   nodes.sort(function(node1, node2){
-    if (node1.frequency != node2.frequency){
-      return node2.frequency - node1.frequency;
-    }else{
-      return node1.ch.charCodeAt(0) - node2.ch.charCodeAt(0);
-    }
+    return node2.frequency - node1.frequency;
   });
 
   // Add next/prev pointers to each node
@@ -398,14 +388,8 @@ TSTBlobBuilder.prototype.toBlobArray = function() {
     return {ch: ch, freq: this._characterFrequency[ch]};
   }, this);
 
-  // JSConv: Python seems retain alphabetical other of "ch"
-  // when freq is the same.
   characters.sort(function (chFreq1, chFreq2){
-    if (chFreq2.freq == chFreq1.freq) {
-      return chFreq1.ch.charCodeAt(0) - chFreq2.ch.charCodeAt(0);
-    }else{
-      return chFreq2.freq - chFreq1.freq;
-    }
+    return chFreq2.freq - chFreq1.freq;
   });
 
   // JSConv: on 16-bit and 32-bit writing:
