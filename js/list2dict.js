@@ -368,10 +368,9 @@ TSTBlobBuilder.prototype.toBlobArray = function() {
   //         15 is (header/12B + maxWordLength/1B + charTableEntryCount/2B)
   //         6 is (charCode/2B + charFrequency/4B)
 
-  this._outputBuffer =
-    new ArrayBuffer(15 + (6 * Object.keys(this._characterFrequency).length) +
+  this._output =
+    new Uint8Array(15 + (6 * Object.keys(this._characterFrequency).length) +
                    nodeslen);
-  this._output = new Uint8Array(this._outputBuffer);
 
   this._outputPos = 0;
 
