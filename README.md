@@ -3,8 +3,6 @@ gaia-kb-dict-tools
 
 Some scripts related to Mozilla Boot-2-Gecko (Firefox OS) Gaia Keyboard user dictionaries.
 
-__Note: All words in user dictionary have the same frequency!__
-
 # Todo
 * (currently none)
 
@@ -20,6 +18,14 @@ The file is ./js/list2dict.js. It exports a `WordListConverter` class, whose con
 user dictionary words. Call the insatntiated object's `toBlob` function to retrieve the Uint8Array
 of the generated dictionary blob. You're not supposed to directly use helper classes related to
 TST tree construction/seralization inside the file.
+
+# Word Frequency
+__All words in user dictionary have the same frequency.__ However, in
+[bug 1143633](https://bugzilla.mozilla.org/show_bug.cgi?id=1143633) we're progressing toward
+replacing xml2dict.py with list2dict.js (named word\_list\_converter.js in Gaia repo), so
+`WordListConverter` accepts words with frequency information: the constructor parameter can
+either be an array of words, or an array of `{w: word, f: freq}` objects. `freq` is expected to be
+within (0, 1) range.
 
 # Tests
 

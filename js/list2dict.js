@@ -506,6 +506,34 @@ TSTBlobBuilder.prototype._emitNode = function(node) {
 
 var WordListConverter = function(words) {
   this.blob = undefined;
+
+  // JSConv: we're being strict here: the words can either be an array of words,
+  // or an array of {w: word, f: freq} objects, but cannot be mix of the two.
+  // Also, if it's the object type, we expect f to be within (0, 1) range,
+  // exclusive on both sides.
+
+  words.reduce(function(prevType, word) {
+    var thisType = typeof word;
+    if (thisType !== prevType) {
+      throw 'Type mismatch. previous: ' + prevType + ', this: ' + thisType;
+    }
+
+    if ('object' === thisType) {
+      if (!('w' in word)) {
+        throw '"w" field not found in word';
+      }
+      if (!('f' in word)) {
+        throw '"f" field not found in word';
+      }
+      // note: using (f <= 0 || f>= 1) causes false negative for f === NaN
+      if (!(word.f > 0 && word.f < 1)) {
+        throw '"f" value not in allowed range';
+      }
+    }
+
+    return thisType;
+  }, typeof words[0]);
+
   this.words = words;
 };
 
@@ -522,12 +550,15 @@ WordListConverter.prototype.toBlob = function() {
 
   var words = this.words;
 
-  words = words.map(function(word) {
-    // JSConv: uniform frequency. We can't use 0 (special meaning for prediction
-    // engine) and we can't use 1 either (which overflows after normalization),
-    // so just use a 0.9
-    return {w: word, f: 0.9};
-  });
+  // JSConv: if the words do not contain frequency information, attach 0.975
+  // uniform frequency. We can't use 0 (special meaning for prediction engine
+  // and we can't use 1 either (which overflows after normalization),
+  // so just use a 0.975 that becomes 31 in _emitNode().
+  if ('string' === typeof words[0]){
+    words = words.map(function(word) {
+     return {w: word, f: 0.975};
+    });
+  }
 
   var tstBuilder = new TSTBuilder(words);
   tstBuilder.build();
