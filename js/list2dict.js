@@ -508,8 +508,8 @@ var WordListConverter = function(words) {
 
   // JSConv: we're being strict here: the words can either be an array of words,
   // or an array of {w: word, f: freq} objects, but cannot be mix of the two.
-  // Also, if it's the object type, we expect f to be within (0, 1) range,
-  // exclusive on both sides.
+  // Also, if it's the object type, we expect f to be within [0, 1) range,
+  // exclusive on "1" side.
 
   words.reduce(function(prevType, word) {
     var thisType = typeof word;
@@ -524,8 +524,8 @@ var WordListConverter = function(words) {
       if (!('f' in word)) {
         throw '"f" field not found in word';
       }
-      // note: using (f <= 0 || f>= 1) causes false negative for f === NaN
-      if (!(word.f > 0 && word.f < 1)) {
+      // note: using (f < 0 || f>= 1) causes false negative for f === NaN
+      if (!(word.f >= 0 && word.f < 1)) {
         throw '"f" value not in allowed range';
       }
     }

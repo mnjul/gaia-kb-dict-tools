@@ -25,7 +25,7 @@ __All words in user dictionary have the same frequency.__ However, in
 replacing xml2dict.py with list2dict.js (named word\_list\_converter.js in Gaia repo), so
 `WordListConverter` accepts words with frequency information: the constructor parameter can
 either be an array of words, or an array of `{w: word, f: freq}` objects. `freq` is expected to be
-within (0, 1) range.
+within [0, 1) range.
 
 # Tests
 
